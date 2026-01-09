@@ -1,0 +1,40 @@
+#include "proxystyle.hpp"
+
+#include <QProxyStyle>
+#include <QSettings>
+#include <QString>
+#include <QStyleFactory>
+#include <QStyleHintReturn>
+#include <QStyleOption>
+#include <QWidget>
+
+#include "../common/common.hpp"
+#include "../common/config/configmanager.hpp"
+
+ProxyStyle::ProxyStyle() {
+	Style::registerStyleInstance(this);
+
+	const QString styleName = configManager().style;
+	if (!styleName.isEmpty()) this->setBaseStyle(QStyleFactory::create(styleName));
+	else this->setBaseStyle(QStyleFactory::create("Fusion"));
+}
+
+ProxyStyle::~ProxyStyle() { Style::unregisterStyleInstance(this); }
+
+int ProxyStyle::styleHint(
+    QStyle::StyleHint hint,
+    const QStyleOption* option,
+    const QWidget* widget,
+    QStyleHintReturn* returnData
+) const {
+	const auto& cfg = configManager();
+
+	switch (hint) {
+	case QStyle::SH_DialogButtonBox_ButtonsHaveIcons: return cfg.menusHaveIcons ? 1 : 0;
+	case QStyle::SH_ItemView_ActivateItemOnSingleClick: return cfg.singleClickActivate ? 1 : 0;
+	case QStyle::SH_UnderlineShortcut: return cfg.shortcutsForContextMenus ? 1 : 0;
+	default: break;
+	}
+
+	return this->QProxyStyle::styleHint(hint, option, widget, returnData);
+}
