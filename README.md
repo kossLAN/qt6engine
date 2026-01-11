@@ -8,7 +8,7 @@ First add the input to your flake.
 
 ```nix
 qt6engine = {
-  url = "path:///home/koss/git/qt6engine";
+  url = "github:kossLAN/qt6engine";
   inputs.nixpkgs.follows = "nixpkgs";
 };
 ```
