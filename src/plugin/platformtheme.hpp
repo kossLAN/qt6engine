@@ -27,9 +27,6 @@ public:
 
 	Q_DISABLE_COPY_MOVE(PlatformTheme)
 
-	//virtual QPlatformMenuItem* createPlatformMenuItem() const;
-	//virtual QPlatformMenu* createPlatformMenu() const;
-	//virtual void showPlatformMenuBar() {}
 	[[nodiscard]] bool usePlatformNativeDialog(DialogType type) const override;
 	[[nodiscard]] QPlatformDialogHelper* createPlatformDialogHelper(DialogType type) const override;
 	[[nodiscard]] const QPalette* palette(Palette type = SystemPalette) const override;
@@ -37,15 +34,10 @@ public:
 	[[nodiscard]] QVariant themeHint(ThemeHint hint) const override;
 	[[nodiscard]] QIcon
 	fileIcon(const QFileInfo& fileInfo, QPlatformTheme::IconOptions iconOptions = {}) const override;
-	//virtual QPixmap standardPixmap(StandardPixmap sp, const QSizeF &size) const;
-	//virtual QPixmap fileIconPixmap(const QFileInfo &fileInfo, const QSizeF &size,
-	//                               QPlatformTheme::IconOptions iconOptions = 0) const;
 
 #ifdef KF_ICONTHEMES_LIB
 	virtual QIconEngine* createIconEngine(const QString& iconName) const override;
 #endif
-	//virtual QList<QKeySequence> keyBindings(QKeySequence::StandardKey key) const;
-	//virtual QString standardButtonText(int button) const;
 
 protected:
 	bool eventFilter(QObject* obj, QEvent* e) override;
