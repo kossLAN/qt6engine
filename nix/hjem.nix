@@ -7,20 +7,20 @@ inputs: {
   inherit (lib.modules) mkIf;
 
   configFormat = pkgs.formats.json {};
-  cfg = config.programs.qt6engine;
+  cfg = config.programs.qtengine;
 in {
-  options.programs.qt6engine = import ./options.nix {inherit lib configFormat;};
+  options.programs.qtengine = import ./options.nix {inherit lib configFormat;};
 
   config = mkIf cfg.enable {
     packages = [
       inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
 
-    xdg.config.files."qt6engine/config.json".source = configFormat.generate "qt6engine-config.json" cfg.config;
+    xdg.config.files."qtengine/config.json".source = configFormat.generate "qtengine-config.json" cfg.config;
     environment.sessionVariables = {
-      QT_QPA_PLATFORMTHEME = "qt6engine";
-      QT_STYLE_OVERRIDE = "qt6engine";
-      QT6ENGINE_CONFIG = "${config.xdg.config.directory}/qt6engine/config.json";
+      QT_QPA_PLATFORMTHEME = "qtengine";
+      QT_STYLE_OVERRIDE = "qtengine";
+      QT6ENGINE_CONFIG = "${config.xdg.config.directory}/qtengine/config.json";
     };
   };
 }

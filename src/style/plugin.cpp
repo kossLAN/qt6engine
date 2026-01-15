@@ -3,7 +3,6 @@
 #include <QString>
 #include <QStylePlugin>
 #include <QtPlugin>
-#include <qtmetamacros.h>
 
 #include "proxystyle.hpp"
 
@@ -13,7 +12,7 @@ class StylePlugin: public QStylePlugin {
 
 public:
 	QStyle* create(const QString& key) override {
-		if (key == QLatin1String("qt6engine")) return new ProxyStyle();
+		if (key == QLatin1String("qtengine")) return new ProxyStyle();
 		return nullptr;
 	}
 };

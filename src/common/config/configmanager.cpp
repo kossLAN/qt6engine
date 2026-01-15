@@ -24,7 +24,6 @@
 #include <qdebug.h>
 #include <qfileinfo.h>
 #include <qlogging.h>
-#include <qtenvironmentvariables.h>
 
 namespace {
 
@@ -102,15 +101,15 @@ bool getBool(const QJsonObject& root, const QString& path, bool defaultVal = fal
 }
 
 QByteArray findConfig() {
-	if (qEnvironmentVariableIsSet("QT6ENGINE_CONFIG")) {
-		const QByteArray path = qgetenv("QT6ENGINE_CONFIG");
+	if (qEnvironmentVariableIsSet("QTENGINE_CONFIG")) {
+		const QByteArray path = qgetenv("QTENGINE_CONFIG");
 		const QFileInfo fileInfo = QFileInfo(path);
 
 		if (fileInfo.exists()) return path;
 	}
 
 	if (qEnvironmentVariableIsSet("XDG_CONFIG_HOME")) {
-		const QByteArray fullPath = qgetenv("XDG_CONFIG_HOME").append("/qt6engine/config.json");
+		const QByteArray fullPath = qgetenv("XDG_CONFIG_HOME").append("/").append(QTENGINE_CONFIG_DIR).append("/config.json");
 		const QFileInfo fileInfo = QFileInfo(fullPath);
 
 		if (fileInfo.exists()) return fullPath;
@@ -120,7 +119,7 @@ QByteArray findConfig() {
 		const QList<QByteArray> paths = qgetenv("XDG_CONFIG_DIRS").split(':');
 
 		for (QByteArray path: paths) {
-			const QByteArray fullPath = path.append("/qt6engine/config.json");
+			const QByteArray fullPath = path.append("/").append(QTENGINE_CONFIG_DIR).append("/config.json");
 			const QFileInfo fileInfo = QFileInfo(fullPath);
 
 			if (fileInfo.exists()) return fullPath;

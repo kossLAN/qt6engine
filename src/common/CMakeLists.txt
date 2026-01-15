@@ -1,30 +1,46 @@
-set(QT6ENGINE_COMMON_SOURCES
+set(QTENGINE_COMMON_SOURCES
   common.cpp
   config/configmanager.cpp
 )
 
-add_library(qt6engine_common SHARED ${QT6ENGINE_COMMON_SOURCES})
-add_library(qt6engine::common ALIAS qt6engine_common)
+add_library(${QTENGINE_NAME}_common SHARED ${QTENGINE_COMMON_SOURCES})
+add_library(${QTENGINE_NAME}::common ALIAS ${QTENGINE_NAME}_common)
 
-target_include_directories(qt6engine_common
+target_include_directories(${QTENGINE_NAME}_common
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_link_libraries(qt6engine_common
+target_link_libraries(${QTENGINE_NAME}_common
   PUBLIC
-    Qt6::Core
-    Qt6::Gui
+    ${QT_NAMESPACE}::Core
+    ${QT_NAMESPACE}::Gui
 )
 
-if (TARGET KF6::ConfigCore)
-  target_link_libraries(qt6engine_common PRIVATE KF6::ConfigCore)
-  target_compile_definitions(qt6engine_common PRIVATE KF_CONFIGCORE_LIB)
+target_compile_definitions(${QTENGINE_NAME}_common
+  PRIVATE
+    QTENGINE_CONFIG_DIR="${QTENGINE_NAME}"
+)
+if (QT_MAJOR EQUAL 5)
+    if (TARGET KF5::ConfigCore)
+      target_link_libraries(${QTENGINE_NAME}_common PRIVATE KF5::ConfigCore)
+      target_compile_definitions(${QTENGINE_NAME}_common PRIVATE KF_CONFIGCORE_LIB)
+    endif()
+
+    if (TARGET KF5::ConfigWidgets)
+      target_link_libraries(${QTENGINE_NAME}_common PRIVATE KF5::ConfigWidgets)
+      target_compile_definitions(${QTENGINE_NAME}_common PRIVATE KF_COLORSCHEME_LIB)
+    endif()
+else()
+    if (TARGET KF6::ConfigCore)
+      target_link_libraries(${QTENGINE_NAME}_common PRIVATE KF6::ConfigCore)
+      target_compile_definitions(${QTENGINE_NAME}_common PRIVATE KF_CONFIGCORE_LIB)
+    endif()
+
+    if (TARGET KF6::ColorScheme)
+      target_link_libraries(${QTENGINE_NAME}_common PRIVATE KF6::ColorScheme)
+      target_compile_definitions(${QTENGINE_NAME}_common PRIVATE KF_COLORSCHEME_LIB)
+    endif()
 endif()
 
-if (TARGET KF6::ColorScheme)
-  target_link_libraries(qt6engine_common PRIVATE KF6::ColorScheme)
-  target_compile_definitions(qt6engine_common PRIVATE KF_COLORSCHEME_LIB)
-endif()
-
-install(TARGETS qt6engine_common DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS ${QTENGINE_NAME}_common DESTINATION ${CMAKE_INSTALL_LIBDIR})

@@ -17,8 +17,10 @@
     hjemModules.defaule = import ./nix/hjem.nix inputs;
 
     packages = forEachSystem (system: pkgs: rec {
-      default = qt6engine;
-      qt6engine = pkgs.callPackage ./nix/default.nix {};
+      default = pkgs.callPackage ./nix/default.nix {};
+
+      qt5engine = pkgs.libsForQt5.callPackage ./nix/qt5engine.nix {};
+      qt6engine = pkgs.callPackage ./nix/qt6engine.nix {};
     });
 
     devShells = forEachSystem (system: pkgs:  {

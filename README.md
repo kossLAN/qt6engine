@@ -1,4 +1,4 @@
-# qt6engine 
+# qtengine 
 
 This is primarily a fork of [hyprqt6engine](https://github.com/hyprwm/hyprqt6engine), and by extension [qt6ct](https://www.opencode.net/trialuser/qt6ct). This aims to seperate itself from unnecessary dependencies, and to provide a good interface for nix.
 
@@ -7,8 +7,8 @@ This is primarily a fork of [hyprqt6engine](https://github.com/hyprwm/hyprqt6eng
 First add the input to your flake.
 
 ```nix
-qt6engine = {
-  url = "github:kossLAN/qt6engine";
+qtengine = {
+  url = "github:kossLAN/qtengine";
   inputs.nixpkgs.follows = "nixpkgs";
 };
 ```
@@ -16,7 +16,7 @@ qt6engine = {
 Then use the provided NixOS module.
 
 ```nix
-imports = [inputs.qt6engine.nixosModules.default];
+imports = [inputs.qtengine.nixosModules.default];
 
 # Add your desired theme to your system packages
 environment.systemPackages = with pkgs.kdePackages; [
@@ -24,7 +24,7 @@ environment.systemPackages = with pkgs.kdePackages; [
   breeze-icons
 ];
 
-programs.qt6engine = {
+programs.qtengine = {
   enable = true;
   
   config = {

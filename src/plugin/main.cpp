@@ -1,4 +1,4 @@
-#include <QLatin1String>
+// #include <QLatin1String>
 #include <QLibraryInfo>
 #include <QObject>
 #include <QString>
@@ -11,11 +11,10 @@
 #include <qpa/qplatformtheme.h>
 #include <qpa/qplatformthemeplugin.h>
 #include <qstringlist.h>
-#include <qtmetamacros.h>
 
 #include "platformtheme.hpp"
 
-class QT6EngineThemePlugin: public QPlatformThemePlugin {
+class QtEngineThemePlugin: public QPlatformThemePlugin {
 	Q_OBJECT;
 	Q_PLUGIN_METADATA(
 	    IID "org.qt-project.Qt.QPA.QPlatformThemeFactoryInterface.5.1" FILE "engine.json"
@@ -26,14 +25,15 @@ public:
 		(void) params;
 
 		const QVersionNumber v = QLibraryInfo::version();
-		if (v.majorVersion() != 6) {
-			qCritical() << "qt6engine was compiled against an incompatible qt version. Compiled against"
-			            << 6 << "but has" << v.majorVersion();
+		constexpr int expectedMajor = QT_VERSION_MAJOR;
+		if (v.majorVersion() != expectedMajor) {
+			qCritical() << "qtengine was compiled against an incompatible qt version. Compiled against"
+			            << expectedMajor << "but has" << v.majorVersion();
 			return nullptr;
 		}
 
-		if (key.toLower() == QLatin1String("qt6engine")) {
-			qInfo() << "Initializing qt6engine platform theme plugin";
+		if (key.toLower() == QString::fromLatin1("qtengine")) {
+			qInfo() << "Initializing qtengine platform theme plugin";
 			return new PlatformTheme();
 		}
 
