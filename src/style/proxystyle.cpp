@@ -15,8 +15,16 @@ ProxyStyle::ProxyStyle() {
 	Style::registerStyleInstance(this);
 
 	const QString styleName = configManager().style;
-	if (!styleName.isEmpty()) this->setBaseStyle(QStyleFactory::create(styleName));
-	else this->setBaseStyle(QStyleFactory::create("Fusion"));
+	QStyle* style = nullptr;
+
+	if (!styleName.isEmpty()
+	    && styleName.compare(QLatin1String("qtengine"), Qt::CaseInsensitive) != 0)
+	{
+		style = QStyleFactory::create(styleName);
+	}
+
+	if (!style) style = QStyleFactory::create(QLatin1String("Fusion"));
+	if (style) this->setBaseStyle(style);
 }
 
 ProxyStyle::~ProxyStyle() { Style::unregisterStyleInstance(this); }

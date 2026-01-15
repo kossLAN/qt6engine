@@ -205,11 +205,11 @@ void PlatformTheme::applySettings() {
 	}
 
 	if (this->mUpdate) {
-		#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		QWindowSystemInterface::handleThemeChange();
-		#else
+#else
 		QWindowSystemInterface::handleThemeChange(nullptr);
-		#endif
+#endif
 		QCoreApplication::postEvent(qGuiApp, new QEvent(QEvent::ApplicationFontChange));
 	}
 
