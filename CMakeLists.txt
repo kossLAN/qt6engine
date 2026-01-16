@@ -2,23 +2,32 @@ cmake_minimum_required(VERSION 3.16)
 
 project(qtengine_plugin LANGUAGES CXX)
 
+include(GNUInstallDirs)
+
 set(QT6_MIN_VERSION 6.9)
 set(QT5_MIN_VERSION 5.15)
+set(KF5_MIN_VERSION "5.102.0")
+set(KF6_MIN_VERSION "6.21.0")
+
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_POSITIONeINDEPENDENT_CODE ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
 option(BUILD_QT5 "Build with Qt5 support" ON)
 option(BUILD_QT6 "Build with Qt6 support" ON)
+
+find_package(ECM ${KF5_MIN_VERSION}  REQUIRED NO_MODULE)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules ${ECM_MODULE_PATH} )
 
 # nix workaround
 if (CMAKE_EXPORT_COMPILE_COMMANDS)
@@ -47,6 +56,7 @@ function(build_qtengine qt_major)
 	set(QT_MAJOR "${qt_major}" CACHE STRING "Qt major version to build against (5 or 6)" FORCE)
 	set(QT_MIN_VERSION "${qt_min_version}" CACHE STRING "Qt minimum version" FORCE)
 	set(QT_NAMESPACE "Qt${qt_major}" CACHE STRING "Qt CMake target namespace" FORCE)
+    set(KF_NAMESPACE "KF${qt_major}" CACHE STRING "KF CMake target namespace" FORCE)
 	set(QTENGINE_NAME "${qtengine_name}" CACHE STRING "Engine name based on Qt major" FORCE)
     set(PLUGINDIR "${plugin_dir}" CACHE STRING "Install location of the plugin libraries" FORCE)
 
@@ -61,17 +71,17 @@ function(build_qtengine qt_major)
         find_package(Qt5Gui ${QT5_MIN_VERSION} CONFIG REQUIRED Private)
         find_package(Qt5ThemeSupport ${QT5_MIN_VERSION} CONFIG REQUIRED Private)
 
-        find_package(KF5Config CONFIG REQUIRED)
-        find_package(KF5ConfigWidgets CONFIG REQUIRED)
-        find_package(KF5IconThemes CONFIG REQUIRED)
+        find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
+            Config ConfigWidgets IconThemes
+        )
 
         add_subdirectory(src qt5engine)
     elseif(QT_MAJOR EQUAL 6)
         find_package(Qt6 ${QT6_MIN_VERSION} COMPONENTS Core Gui Widgets REQUIRED)
 
-        find_package(KF6Config CONFIG REQUIRED)
-        find_package(KF6ColorScheme CONFIG REQUIRED)
-        find_package(KF6IconThemes CONFIG REQUIRED)
+        find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS
+            Config ColorScheme IconThemes
+        )
 
         # In Qt 6.10, private dependencies are required to be explicit,
         # but they could not be explicitly depended on prior to 6.9.

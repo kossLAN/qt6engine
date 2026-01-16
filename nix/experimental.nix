@@ -24,7 +24,7 @@ stdenv.mkDerivation {
     kdePackages.kiconthemes
   ];
 
-  # Can't have qt5 dependencies in buildInputs with qt6 dependencies, this is how most qt5/qt6 support 
+  # Can't have qt5 dependencies in buildInputs with qt6 dependencies, this is how most qt5/qt6 support
   # packages are packaged in nixkgs...
   cmakeFlags = [
     (lib.cmakeFeature "QT5_PLUGINDIR" "${placeholder "out"}/${libsForQt5.qtbase.qtPluginPrefix}")

@@ -63,19 +63,15 @@
 #include <QQuickStyle>
 #endif
 
+#include <utility>
+
+#include <KIconEngine>
+#include <KIconLoader>
 #include <QStringList>
+#include <qcontainerfwd.h>
 #include <qpa/qplatformtheme.h>
 #include <qpa/qplatformthemefactory_p.h>
 #include <qpa/qwindowsysteminterface.h>
-
-#ifdef KF_ICONTHEMES_LIB
-#include <KIconEngine>
-#include <KIconLoader>
-#endif
-
-#include <utility>
-
-#include <qcontainerfwd.h>
 
 #if __has_include(<private/qgenericunixtheme_p.h>)
 #include <private/qgenericunixtheme_p.h>
@@ -144,6 +140,10 @@ QStringList PlatformTheme::iconPaths() {
 		else it = paths.erase(it);
 	}
 
+	for (const QString& p: paths) {
+		qDebug() << "Icon Path: " << p;
+	}
+
 	return paths;
 }
 
@@ -180,11 +180,9 @@ QIcon PlatformTheme::fileIcon(
 	return QIcon::fromTheme(type.iconName());
 }
 
-#ifdef KF_ICONTHEMES_LIB
 QIconEngine* PlatformTheme::createIconEngine(const QString& iconName) const {
 	return new KIconEngine(iconName, KIconLoader::global());
 }
-#endif
 
 void PlatformTheme::applySettings() {
 	if (!QGuiApplication::desktopSettingsAware() || this->mIsIgnored) {
@@ -214,7 +212,7 @@ void PlatformTheme::applySettings() {
 	}
 
 #ifdef QT_WIDGETS_LIB
-	if (hasWidgets() && m_update) {
+	if (hasWidgets() && mUpdate) {
 #if QT_CONFIG(graphicsview)
 		for (auto scene: std::as_const(QApplicationPrivate::instance()->scene_list))
 			QCoreApplication::postEvent(scene, new QEvent(QEvent::ApplicationFontChange));

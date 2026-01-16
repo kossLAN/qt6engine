@@ -1,14 +1,9 @@
 #pragma once
 
-#include <optional>
-
 #include <QPalette>
 #include <QSet>
 #include <QString>
 #include <QStringList>
-
-// #if QT_VERSION < QT_VERSION_CHECK(6, 4, 0)
-// #endif
 
 class Style {
 public:

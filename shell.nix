@@ -20,10 +20,6 @@ in
       kdePackages.kconfig
       kdePackages.kcolorscheme
       kdePackages.kiconthemes
-
-      # libsForQt5.kconfig
-      # libsForQt5.kconfigwidgets
-      # libsForQt5.kiconthemes
     ];
 
     nativeBuildInputs = with pkgs; [
@@ -45,7 +41,6 @@ in
       libsForQt5.kconfig.dev
       libsForQt5.kconfigwidgets.dev
       libsForQt5.kiconthemes.dev
-
       libsForQt5.kauth.dev
       libsForQt5.kcoreaddons.dev
       libsForQt5.kwidgetsaddons.dev
@@ -54,7 +49,7 @@ in
 
     shellHook = ''
       export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
-      export LD_LIBRARY_PATH=$PWD/debug/lib
+      export LD_LIBRARY_PATH=$PWD/debug/lib64
       export QT_PLUGIN_PATH=$PWD/debug/lib/qt-5/plugins
 
       # Add Qt-related environment variables.

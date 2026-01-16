@@ -35,9 +35,7 @@ public:
 	[[nodiscard]] QIcon
 	fileIcon(const QFileInfo& fileInfo, QPlatformTheme::IconOptions iconOptions = {}) const override;
 
-#ifdef KF_ICONTHEMES_LIB
-	virtual QIconEngine* createIconEngine(const QString& iconName) const override;
-#endif
+	[[nodiscard]] QIconEngine* createIconEngine(const QString& iconName) const override;
 
 protected:
 	bool eventFilter(QObject* obj, QEvent* e) override;
