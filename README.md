@@ -1,6 +1,6 @@
 # qtengine 
 
-A Qt6/Qt5 platform theme using the KDE Color Scheme format, meant to be easily configurable with support for Qt5 & Qt6.
+A Qt6/Qt5 platform theme using the KDE Color Scheme format, meant to be easily configurable.
 
 ## What problem does this solve?
 - An easy config in JSON
