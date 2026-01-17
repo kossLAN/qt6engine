@@ -11,6 +11,7 @@
 #include <QJsonParseError>
 #include <QJsonValue>
 #include <QList>
+#include <QLoggingCategory>
 #include <QStandardPaths>
 #include <QString>
 #include <QStringList>
@@ -24,7 +25,14 @@
 #include <qdebug.h>
 #include <qfileinfo.h>
 #include <qlogging.h>
+
+// NOLINTBEGIN
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <qtenvironmentvariables.h>
+#endif
+// NOLINTEND
+
+Q_LOGGING_CATEGORY(logConfigManager, "qtengine.configmanager")
 
 namespace {
 
@@ -45,7 +53,8 @@ QString
 getString(const QJsonObject& root, const QString& path, const QString& defaultVal = QString()) {
 	const QJsonValue v = valueAtPath(root, path);
 	if (v.isUndefined() || v.isNull()) {
-		qDebug() << "Config: key missing or null for" << path << "- using default:" << defaultVal;
+		qCDebug(logConfigManager) << "Config: key missing or null for" << path
+		                          << "- using default:" << defaultVal;
 
 		return defaultVal;
 	}
@@ -63,7 +72,8 @@ int getInt(const QJsonObject& root, const QString& path, int defaultVal = 0) {
 	const QJsonValue v = valueAtPath(root, path);
 
 	if (v.isUndefined() || v.isNull()) {
-		qDebug() << "Config: key missing or null for" << path << "- using default:" << defaultVal;
+		qCDebug(logConfigManager) << "Config: key missing or null for" << path
+		                          << "- using default:" << defaultVal;
 
 		return defaultVal;
 	}
@@ -75,12 +85,14 @@ int getInt(const QJsonObject& root, const QString& path, int defaultVal = 0) {
 		if (d == floored) {
 			return static_cast<int>(floored);
 		} else {
-			qDebug() << "Config: expected integer at" << path << "but got non-integer number" << d;
+			qCDebug(logConfigManager) << "Config: expected integer at" << path
+			                          << "but got non-integer number" << d;
+
 			return defaultVal;
 		}
 	}
 
-	qDebug() << "Config: expected number at" << path << "but got" << v.type();
+	qCDebug(logConfigManager) << "Config: expected number at" << path << "but got" << v.type();
 
 	return defaultVal;
 }
@@ -88,7 +100,9 @@ int getInt(const QJsonObject& root, const QString& path, int defaultVal = 0) {
 bool getBool(const QJsonObject& root, const QString& path, bool defaultVal = false) {
 	const QJsonValue v = valueAtPath(root, path);
 	if (v.isUndefined() || v.isNull()) {
-		qDebug() << "Config: key missing or null for" << path << "- using default:" << defaultVal;
+		qCDebug(logConfigManager) << "Config: key missing or null for" << path
+		                          << "- using default:" << defaultVal;
+
 		return defaultVal;
 	}
 
@@ -96,21 +110,22 @@ bool getBool(const QJsonObject& root, const QString& path, bool defaultVal = fal
 
 	if (v.isDouble()) return (v.toInt() != 0);
 
-	qDebug() << "Config: expected bool or numeric (0/1) at" << path << "but got" << v.type();
+	qCDebug(logConfigManager) << "Config: expected bool or numeric (0/1) at" << path << "but got"
+	                          << v.type();
 
 	return defaultVal;
 }
 
 QByteArray findConfig() {
-	if (qEnvironmentVariableIsSet("QT6ENGINE_CONFIG")) {
-		const QByteArray path = qgetenv("QT6ENGINE_CONFIG");
+	if (qEnvironmentVariableIsSet("QTENGINE_CONFIG")) {
+		const QByteArray path = qgetenv("QTENGINE_CONFIG");
 		const QFileInfo fileInfo = QFileInfo(path);
 
 		if (fileInfo.exists()) return path;
 	}
 
 	if (qEnvironmentVariableIsSet("XDG_CONFIG_HOME")) {
-		const QByteArray fullPath = qgetenv("XDG_CONFIG_HOME").append("/qt6engine/config.json");
+		const QByteArray fullPath = qgetenv("XDG_CONFIG_HOME").append("/qtengine/config.json");
 		const QFileInfo fileInfo = QFileInfo(fullPath);
 
 		if (fileInfo.exists()) return fullPath;
@@ -120,7 +135,7 @@ QByteArray findConfig() {
 		const QList<QByteArray> paths = qgetenv("XDG_CONFIG_DIRS").split(':');
 
 		for (QByteArray path: paths) {
-			const QByteArray fullPath = path.append("/qt6engine/config.json");
+			const QByteArray fullPath = path.append("/qtengine/config.json");
 			const QFileInfo fileInfo = QFileInfo(fullPath);
 
 			if (fileInfo.exists()) return fullPath;
@@ -136,22 +151,22 @@ void ConfigManager::init() {
 	QFile file(configPath);
 
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-		qDebug() << "Failed to open config file" << configPath;
+		qCDebug(logConfigManager) << "Failed to open config file" << configPath;
 		return;
 	}
 
-	QJsonParseError parseError;
+	QJsonParseError parseError {};
 	const QByteArray raw = file.readAll();
 	const QJsonDocument doc = QJsonDocument::fromJson(raw, &parseError);
 
 	if (parseError.error != QJsonParseError::NoError) {
-		qDebug() << "JSON parse error at offset" << parseError.offset << ":"
-		         << parseError.errorString();
+		qCDebug(logConfigManager) << "JSON parse error at offset" << parseError.offset << ":"
+		                          << parseError.errorString();
 		return;
 	}
 
 	if (!doc.isObject()) {
-		qDebug() << "Top-level JSON must be an object";
+		qCDebug(logConfigManager) << "Top-level JSON must be an object";
 		return;
 	}
 

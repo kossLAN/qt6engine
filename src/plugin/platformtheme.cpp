@@ -63,19 +63,15 @@
 #include <QQuickStyle>
 #endif
 
+#include <utility>
+
+#include <KIconEngine>
+#include <KIconLoader>
 #include <QStringList>
+#include <qcontainerfwd.h>
 #include <qpa/qplatformtheme.h>
 #include <qpa/qplatformthemefactory_p.h>
 #include <qpa/qwindowsysteminterface.h>
-
-#ifdef KF_ICONTHEMES_LIB
-#include <KIconEngine>
-#include <KIconLoader>
-#endif
-
-#include <utility>
-
-#include <qcontainerfwd.h>
 
 #if __has_include(<private/qgenericunixtheme_p.h>)
 #include <private/qgenericunixtheme_p.h>
@@ -87,9 +83,7 @@
 #include "../common/config/configmanager.hpp"
 #include "platformtheme.hpp"
 
-using namespace Qt::Literals::StringLiterals;
-
-// QT_QPA_PLATFORMTHEME=qt6engine
+// QT_QPA_PLATFORMTHEME=qtengine
 
 PlatformTheme::PlatformTheme()
     : mFixedFont(*this->QGenericUnixTheme::font(QPlatformTheme::FixedFont))
@@ -99,7 +93,7 @@ PlatformTheme::PlatformTheme()
 		QMetaObject::invokeMethod(this, &PlatformTheme::applySettings, Qt::QueuedConnection);
 		// must be applied before Q_COREAPP_STARTUP_FUNCTION execution
 		const QString colorScheme = configManager().colorScheme;
-		if (isKColorScheme(colorScheme)) qApp->setProperty("KDE_COLOR_SCHEME_PATH", colorScheme);
+		qApp->setProperty("KDE_COLOR_SCHEME_PATH", colorScheme);
 
 #if defined QT_WIDGETS_LIB && defined QT_QUICKCONTROLS2_LIB
 		if (hasWidgets())
@@ -132,10 +126,10 @@ const QFont* PlatformTheme::font(QPlatformTheme::Font type) const {
 }
 
 QStringList PlatformTheme::iconPaths() {
-	QStringList paths = {QDir::homePath() + QStringLiteral("/.icons")};
+	QStringList paths = {QDir::homePath() + QString::fromLatin1("/.icons")};
 
 	for (const QString& p: QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation)) {
-		paths << (p + QStringLiteral("/icons"));
+		paths << (p + QString::fromLatin1("/icons"));
 	}
 	paths.removeDuplicates();
 
@@ -159,7 +153,7 @@ QVariant PlatformTheme::themeHint(QPlatformTheme::ThemeHint hint) const {
 	case QPlatformTheme::MouseDoubleClickInterval: return 400;
 	case QPlatformTheme::ToolButtonStyle: return 4;
 	case QPlatformTheme::SystemIconThemeName: return cfg.iconTheme;
-	case QPlatformTheme::StyleNames: return {u"qt6engine"_s};
+	case QPlatformTheme::StyleNames: return {QString::fromLatin1("qtengine")};
 	case QPlatformTheme::IconThemeSearchPaths: return iconPaths();
 	case QPlatformTheme::DialogButtonBoxLayout: return 0;
 	case QPlatformTheme::KeyboardScheme: return 2;
@@ -182,11 +176,9 @@ QIcon PlatformTheme::fileIcon(
 	return QIcon::fromTheme(type.iconName());
 }
 
-#ifdef KF_ICONTHEMES_LIB
 QIconEngine* PlatformTheme::createIconEngine(const QString& iconName) const {
 	return new KIconEngine(iconName, KIconLoader::global());
 }
-#endif
 
 void PlatformTheme::applySettings() {
 	if (!QGuiApplication::desktopSettingsAware() || this->mIsIgnored) {
@@ -200,18 +192,27 @@ void PlatformTheme::applySettings() {
 	this->mFixedFont = QFont(cfg.fontFixed, cfg.fontFixedSize);
 	this->mPalette = Style::loadColorScheme(cfg.colorScheme);
 
-	if (isKColorScheme(cfg.colorScheme)) qApp->setProperty("KDE_COLOR_SCHEME_PATH", cfg.colorScheme);
-	else if (this->mUpdate) qApp->setProperty("KDE_COLOR_SCHEME_PATH", QVariant());
+	if (!cfg.colorScheme.isEmpty()) {
+		qApp->setProperty("KDE_COLOR_SCHEME_PATH", cfg.colorScheme);
+	} else if (this->mUpdate) {
+		qApp->setProperty("KDE_COLOR_SCHEME_PATH", QVariant());
+	}
 
 	if (this->mUpdate) {
+		// NOLINTBEGIN
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		QWindowSystemInterface::handleThemeChange();
+#else
+		QWindowSystemInterface::handleThemeChange(nullptr);
+#endif
+		// NOLINTEND
 		QCoreApplication::postEvent(qGuiApp, new QEvent(QEvent::ApplicationFontChange));
 	}
 
 #ifdef QT_WIDGETS_LIB
-	if (hasWidgets() && m_update) {
+	if (hasWidgets() && this->mUpdate) {
 #if QT_CONFIG(graphicsview)
-		for (auto scene: std::as_const(QApplicationPrivate::instance()->scene_list))
+		for (auto* scene: std::as_const(QApplicationPrivate::instance()->scene_list))
 			QCoreApplication::postEvent(scene, new QEvent(QEvent::ApplicationFontChange));
 #endif
 
@@ -238,8 +239,8 @@ QString PlatformTheme::loadStyleSheets(const QStringList& paths) {
 			if (!content.endsWith(QChar::LineFeed)) content.append(QChar::LineFeed);
 		}
 	}
-	static const QRegularExpression regExp(u"//.*\n"_s);
-	content.replace(regExp, u"\n"_s);
+	static const QRegularExpression regExp(QString::fromLatin1("//.*\n"));
+	content.replace(regExp, QString::fromLatin1("\n"));
 	return content;
 }
 
@@ -252,8 +253,7 @@ bool PlatformTheme::eventFilter(QObject* obj, QEvent* e) {
 
 	if (obj == qApp && e->type() == QEvent::DynamicPropertyChange
 	    && dynamic_cast<QDynamicPropertyChangeEvent*>(e)->propertyName() == "KDE_COLOR_SCHEME_PATH"
-	    && qApp->property("KDE_COLOR_SCHEME_PATH").toString().isEmpty()
-	    && isKColorScheme(colorScheme))
+	    && qApp->property("KDE_COLOR_SCHEME_PATH").toString().isEmpty())
 		this->applySettings();
 
 	return this->QObject::eventFilter(obj, e);

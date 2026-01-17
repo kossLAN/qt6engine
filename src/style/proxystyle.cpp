@@ -1,5 +1,6 @@
 #include "proxystyle.hpp"
 
+#include <QLoggingCategory>
 #include <QProxyStyle>
 #include <QSettings>
 #include <QString>
@@ -7,16 +8,29 @@
 #include <QStyleHintReturn>
 #include <QStyleOption>
 #include <QWidget>
+#include <qnamespace.h>
 
 #include "../common/common.hpp"
 #include "../common/config/configmanager.hpp"
+
+Q_LOGGING_CATEGORY(logStyle, "qtengine.style");
 
 ProxyStyle::ProxyStyle() {
 	Style::registerStyleInstance(this);
 
 	const QString styleName = configManager().style;
-	if (!styleName.isEmpty()) this->setBaseStyle(QStyleFactory::create(styleName));
-	else this->setBaseStyle(QStyleFactory::create("Fusion"));
+	QStyle* style = nullptr;
+
+	if (!styleName.isEmpty() && styleName.compare("qtengine", Qt::CaseInsensitive) != 0) {
+		style = QStyleFactory::create(styleName);
+	}
+
+	if (!style) {
+		style = QStyleFactory::create("Fusion");
+		qCDebug(logStyle) << "Failed to load style:" << styleName;
+	}
+
+	if (style) this->setBaseStyle(style);
 }
 
 ProxyStyle::~ProxyStyle() { Style::unregisterStyleInstance(this); }

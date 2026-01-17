@@ -1,7 +1,7 @@
 {
   pkgs ? import <nixpkgs> {},
   stdenv ? pkgs.clangStdenv,
-  qt6engine ? pkgs.callPackage ./nix/default.nix {inherit stdenv;},
+  qtengine ? pkgs.callPackage ./nix/default.nix {inherit stdenv;},
   ...
 }: let
   tidyfox = import (pkgs.fetchFromGitea {
@@ -12,8 +12,8 @@
     hash = "sha256-77ERiweF6lumonp2c/124rAoVG6/o9J+Aajhttwtu0w=";
   }) {inherit pkgs;};
 in
-  pkgs.mkShell.override {stdenv = qt6engine.stdenv;} {
-    inputsFrom = [qt6engine];
+  pkgs.mkShell.override {inherit (qtengine) stdenv;} {
+    inputsFrom = [qtengine];
 
     buildInputs = with pkgs; [
       kdePackages.kconfig
@@ -26,15 +26,30 @@ in
       clang-tools
       parallel
       makeWrapper
+      gdb
     ];
 
     TIDYFOX = "${tidyfox}/lib/libtidyfox.so";
-    QT_QPA_PLATFORMTHEME = "qt6engine";
-    # QT_DEBUG_PLUGINS = "1";
+    QT_QPA_PLATFORMTHEME = "qtengine";
+    QT_STYLE_OVERRIDE = "qtengine";
+    QT_DEBUG_PLUGINS = "1";
+    QT_LOGGING_RULES = "qt.qpa.*=true;qtengine.*=true";
+
+    CMAKE_PREFIX_PATH = builtins.concatStringsSep ":" (with pkgs; [
+      libsForQt5.qtbase.dev
+      libsForQt5.kconfig.dev
+      libsForQt5.kconfigwidgets.dev
+      libsForQt5.kiconthemes.dev
+      libsForQt5.kauth.dev
+      libsForQt5.kcoreaddons.dev
+      libsForQt5.kwidgetsaddons.dev
+      libsForQt5.kcodecs.dev
+    ]);
 
     shellHook = ''
       export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
-      export QT_PLUGIN_PATH=$QT_PLUGIN_PATH:$(echo $PWD)/result/lib/qt-6/plugins
+      export LD_LIBRARY_PATH=$PWD/debug/lib64
+      export QT_PLUGIN_PATH=$PWD/debug/lib/qt-5/plugins
 
       # Add Qt-related environment variables.
       # https://discourse.nixos.org/t/qt-development-environment-on-a-flake-system/23707/5

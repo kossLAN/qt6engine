@@ -16,6 +16,8 @@
 #include <QObject>
 #include <QPalette>
 
+Q_DECLARE_LOGGING_CATEGORY(logPlatformTheme);
+
 class PlatformTheme
     : public QObject
     , public QGenericUnixTheme {
@@ -35,9 +37,7 @@ public:
 	[[nodiscard]] QIcon
 	fileIcon(const QFileInfo& fileInfo, QPlatformTheme::IconOptions iconOptions = {}) const override;
 
-#ifdef KF_ICONTHEMES_LIB
-	virtual QIconEngine* createIconEngine(const QString& iconName) const override;
-#endif
+	[[nodiscard]] QIconEngine* createIconEngine(const QString& iconName) const override;
 
 protected:
 	bool eventFilter(QObject* obj, QEvent* e) override;
@@ -47,7 +47,7 @@ private slots:
 
 private:
 #ifdef QT_WIDGETS_LIB
-	bool hasWidgets();
+	static bool hasWidgets();
 #endif
 	static QStringList iconPaths();
 	static QString loadStyleSheets(const QStringList& paths);

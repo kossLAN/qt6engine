@@ -1,7 +1,5 @@
 #pragma once
-//
-// #include "../helpers/Memory.hpp"
-//
+
 #include <QDebug>
 #include <QFile>
 #include <QJsonArray>
@@ -9,7 +7,10 @@
 #include <QJsonObject>
 #include <QJsonParseError>
 #include <QJsonValue>
+#include <QLoggingCategory>
 #include <QString>
+
+Q_DECLARE_LOGGING_CATEGORY(logConfigManager);
 
 class ConfigManager {
 public:

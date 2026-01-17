@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QLoggingCategory>
 #include <QProxyStyle>
 #include <QStyleHintReturn>
 #include <QStyleOption>
@@ -7,6 +8,8 @@
 #include <QtGlobal>
 
 #include "common.hpp"
+
+Q_DECLARE_LOGGING_CATEGORY(logStyle);
 
 class ProxyStyle
     : public QProxyStyle
