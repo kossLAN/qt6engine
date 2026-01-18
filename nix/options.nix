@@ -4,6 +4,29 @@
 }: let
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) str int bool path submodule;
+
+  mkFontOption = mkOption {
+    type = submodule (_: {
+      freeformType = configFormat.type;
+
+      options = {
+        family = mkOption {
+          type = str;
+          default = "";
+        };
+
+        size = mkOption {
+          type = int;
+          default = 10;
+        };
+
+        weight = mkOption {
+          type = int;
+          default = -1;
+        };
+      };
+    });
+  };
 in {
   enable = mkEnableOption "Enable qt6engine.";
 
@@ -48,24 +71,12 @@ in {
                 '';
               };
 
-              fontFixed = mkOption {
-                type = str;
-                default = "";
+              fontFixed = mkFontOption // {
+                description = "Config for fixed/monospace fonts.";
               };
 
-              fontFixedSize = mkOption {
-                type = int;
-                default = 11;
-              };
-
-              font = mkOption {
-                type = str;
-                default = "";
-              };
-
-              fontSize = mkOption {
-                type = int;
-                default = 11;
+              font = mkFontOption // {
+                description = "Config for regular fonts.";
               };
             };
           });

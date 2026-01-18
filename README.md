@@ -39,10 +39,18 @@ programs.qtengine = {
       colorScheme = "${pkgs.kdePackages.breeze}/share/color-schemes/BreezeDark.colors";
       iconTheme = "breeze-dark";
       style = "breeze";
-      fontFixed = "<font name>";
-      fontFixedSize = 10;
-      font = "<font name>";
-      fontSize = 10;
+
+      font = {
+        family = "<font name>";
+        size = 11;
+        weight = -1;
+      };
+
+      fontFixed = {
+        family = "<font name>";
+        size = 11;
+        weight = -1;
+      };
     };
 
     misc = {
@@ -94,12 +102,18 @@ Then write a config at `~/.config/qtengine/config.json`, additionally it can be 
 {
   "theme": {
     "colorScheme": "<path to KColorScheme file>",
-    "fontFixed": "<font name>",
-    "fontFixedSize": 10,
-    "font": "<font name>",
-    "fontSize": 10,
     "iconTheme": "breeze-dark",
-    "style": "breeze"
+    "style": "breeze",
+    "font": {
+      "family": "<font name>",
+      "size": 11,
+      "weight": -1
+    },
+    "fontFixed": {
+      "family": "<font name>",
+      "size": 11,
+      "weight": -1
+    }
   },
   "misc": {
     "menusHaveIcons": true,

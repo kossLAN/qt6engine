@@ -83,6 +83,10 @@
 #include "../common/config/configmanager.hpp"
 #include "platformtheme.hpp"
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <qtversionchecks.h>
+#endif
+
 // QT_QPA_PLATFORMTHEME=qtengine
 
 PlatformTheme::PlatformTheme()
@@ -188,8 +192,8 @@ void PlatformTheme::applySettings() {
 
 	const auto& cfg = configManager();
 
-	this->mFont = QFont(cfg.font, cfg.fontSize);
-	this->mFixedFont = QFont(cfg.fontFixed, cfg.fontFixedSize);
+	this->mFont = QFont(cfg.font, cfg.fontSize, cfg.fontWeight);
+	this->mFixedFont = QFont(cfg.fontFixed, cfg.fontFixedSize, cfg.fontFixedWeight);
 	this->mPalette = Style::loadColorScheme(cfg.colorScheme);
 
 	if (!cfg.colorScheme.isEmpty()) {
@@ -199,13 +203,12 @@ void PlatformTheme::applySettings() {
 	}
 
 	if (this->mUpdate) {
-		// NOLINTBEGIN
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		QWindowSystemInterface::handleThemeChange();
 #else
 		QWindowSystemInterface::handleThemeChange(nullptr);
 #endif
-		// NOLINTEND
+
 		QCoreApplication::postEvent(qGuiApp, new QEvent(QEvent::ApplicationFontChange));
 	}
 

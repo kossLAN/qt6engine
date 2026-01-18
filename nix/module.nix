@@ -10,7 +10,7 @@ inputs: {
   configFormat = pkgs.formats.json {};
   cfg = config.programs.qtengine;
 in {
-  options.programs.qtengine = import ./options.nix { inherit lib configFormat; };
+  options.programs.qtengine = import ./options.nix {inherit lib configFormat;};
 
   config = mkIf cfg.enable {
     qt.enable = true;

@@ -26,11 +26,10 @@
 #include <qfileinfo.h>
 #include <qlogging.h>
 
-// NOLINTBEGIN
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <qtenvironmentvariables.h>
+#include <qtversionchecks.h>
 #endif
-// NOLINTEND
 
 Q_LOGGING_CATEGORY(logConfigManager, "qtengine.configmanager", QtWarningMsg)
 
@@ -175,10 +174,14 @@ void ConfigManager::init() {
 	this->colorScheme = getString(root, "theme.colorScheme", QString());
 	this->iconTheme = getString(root, "theme.iconTheme", QString());
 	this->style = getString(root, "theme.style", QString());
-	this->fontFixed = getString(root, "theme.fontFixed", QString("monospace"));
-	this->fontFixedSize = getInt(root, "theme.fontFixedSize", 11);
-	this->font = getString(root, "theme.font", QString("Sans Serif"));
-	this->fontSize = getInt(root, "theme.fontSize", 11);
+
+	this->fontFixed = getString(root, "theme.fontFixed.family", QString("monospace"));
+	this->fontFixedSize = getInt(root, "theme.fontFixed.size", 11);
+	this->fontFixedWeight = getInt(root, "theme.fontFixed.weight", -1);
+
+	this->font = getString(root, "theme.font.family", QString("Sans Serif"));
+	this->fontSize = getInt(root, "theme.font.size", 11);
+	this->fontWeight = getInt(root, "theme.font.weight", -1);
 
 	this->singleClickActivate = getBool(root, "misc.singleClickActivate", true);
 	this->menusHaveIcons = getBool(root, "misc.menusHaveIcons", true);

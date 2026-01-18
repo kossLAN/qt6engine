@@ -16,11 +16,11 @@
 
     hjemModules.defaule = import ./nix/hjem.nix inputs;
 
-    packages = forEachSystem (system: pkgs: rec {
+    packages = forEachSystem (system: pkgs: {
       default = pkgs.callPackage ./nix/default.nix {};
     });
 
-    devShells = forEachSystem (system: pkgs:  {
+    devShells = forEachSystem (system: pkgs: {
       default = import ./shell.nix {
         inherit pkgs;
 

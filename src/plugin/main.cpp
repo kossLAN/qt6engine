@@ -9,11 +9,10 @@
 #include <qpa/qplatformtheme.h>
 #include <qpa/qplatformthemeplugin.h>
 
-// NOLINTBEGIN
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <qtmetamacros.h>
+#include <qtversionchecks.h>
 #endif
-// NOLINTEND
 
 #include "platformtheme.hpp"
 
@@ -31,8 +30,7 @@ public:
 
 		const QVersionNumber v = QLibraryInfo::version();
 
-		// NOLINTBEGIN
-		constexpr int expectedMajor = QT_VERSION_MAJOR;
+		constexpr int expectedMajor = QT_VERSION_MAJOR; // NOLINT
 
 		if (v.majorVersion() != expectedMajor) {
 			qCCritical(logPlatformTheme)
@@ -40,7 +38,6 @@ public:
 			    << expectedMajor << "but has" << v.majorVersion();
 			return nullptr;
 		}
-		// NOLINTEND
 
 		if (key.toLower() == QString::fromLatin1("qtengine")) {
 			qCInfo(logPlatformTheme) << "Initializing qtengine platform theme plugin";
