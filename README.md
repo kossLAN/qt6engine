@@ -27,7 +27,7 @@ imports = [inputs.qtengine.nixosModules.default];
 # Add your desired theme to your system packages
 environment.systemPackages = with pkgs.kdePackages; [
   breeze
-  breeze.qt5
+  breeze.qt5 # Needed if you want Qt5 support.
   breeze-icons
 ];
 
@@ -124,6 +124,10 @@ Then write a config at `~/.config/qtengine/config.json`, additionally it can be 
 ```
 
 Finally set the environment variable `QT_QPA_PLATFORMTHEME` to `qtengine`.
+
+> [!NOTE]
+>
+> You will also need a Qt5 AND Qt6 build of your theme for things to work!
 
 ## Credits
 
