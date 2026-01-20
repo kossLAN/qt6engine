@@ -66,6 +66,19 @@ programs.qtengine = {
 >
 > A restart of your DE/WM may be required for changes to take effect.
 
+## Arch Linux AUR Installation
+
+First install the [AUR package](https://aur.archlinux.org/packages/qtengine).
+
+```sh
+yay -S qtengine
+# yay -S qtengine-git
+```
+
+Then copy the example config from `/etc/qtengine/config.example.json` to `~/.config/qtengine/config.json`. Additionally, it can be sourced from a folder in your `XDG_CONFIG_DIRS`, or by using the `QTENGINE_CONFIG` environment variable.
+
+Finally set the environment variable `QT_QPA_PLATFORMTHEME` to `qtengine`.
+
 ## Installation on other distributions
 
 First you'll need the following Qt6 dependencies
@@ -73,6 +86,9 @@ First you'll need the following Qt6 dependencies
 ```
 qtbase kconfig kcolorscheme kiconthemes
 ```
+
+Then write a config at `~/.config/qtengine/config.json`, additionally it can be sourced from a folder in your `XDG_CONFIG_DIRS`, or by using the `QTENGINE_CONFIG` environment variable.
+
 
 If you want Qt5 support you'll also need 
 
