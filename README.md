@@ -75,7 +75,7 @@ yay -S qtengine
 # yay -S qtengine-git
 ```
 
-> [!NOTE]
+> [!WARNING]
 >
 > These packages are unofficial and community-maintained.
 
