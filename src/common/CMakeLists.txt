@@ -11,6 +11,8 @@ target_include_directories(${QTENGINE_NAME}_common
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+target_link_libraries(${QTENGINE_NAME}_common PUBLIC ${QT_NAMESPACE}::Core)
+
 if (QT_MAJOR EQUAL 5) 
     target_link_libraries(${QTENGINE_NAME}_common PRIVATE 
       ${KF_NAMESPACE}::ConfigCore

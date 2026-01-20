@@ -14,17 +14,12 @@
 #include <QLoggingCategory>
 #include <QStandardPaths>
 #include <QString>
-#include <QStringList>
-#include <QtCore/QDebug>
-#include <QtCore/QString>
-#include <QtCore/QStringList>
-#include <QtCore/Qt>
-#include <QtCore/QtGlobal>
-#include <QtCore/QtMath>
+#include <Qt>
 #include <QtGlobal>
 #include <qdebug.h>
 #include <qfileinfo.h>
 #include <qlogging.h>
+#include <qstringview.h>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <qtenvironmentvariables.h>
@@ -48,9 +43,41 @@ QJsonValue valueAtPath(const QJsonObject& root, const QString& path) {
 	return current;
 }
 
+QString homeString(const QString& s) {
+	if (s.isEmpty()) return s;
+
+	const QByteArray home = qgetenv("HOME");
+	if (home.isEmpty()) return s;
+
+	if (s == "~") return QString::fromUtf8(home);
+
+	if (s.startsWith("~/")) return QString::fromUtf8(home) + s.mid(1);
+
+	return s;
+}
+
+QString
+getPath(const QJsonObject& root, const QString& path, const QString& defaultVal = QString()) {
+	const QJsonValue v = valueAtPath(root, path);
+
+	if (v.isUndefined() || v.isNull()) {
+		qCDebug(logConfigManager) << "Config: key missing or null for" << path
+		                          << "- using default:" << defaultVal;
+		return homeString(defaultVal);
+	}
+
+	if (!v.isString()) {
+		qDebug() << "Config: expected string at" << path << "but got" << v.type();
+		return homeString(defaultVal);
+	}
+
+	return homeString(v.toString());
+}
+
 QString
 getString(const QJsonObject& root, const QString& path, const QString& defaultVal = QString()) {
 	const QJsonValue v = valueAtPath(root, path);
+
 	if (v.isUndefined() || v.isNull()) {
 		qCDebug(logConfigManager) << "Config: key missing or null for" << path
 		                          << "- using default:" << defaultVal;
@@ -98,6 +125,7 @@ int getInt(const QJsonObject& root, const QString& path, int defaultVal = 0) {
 
 bool getBool(const QJsonObject& root, const QString& path, bool defaultVal = false) {
 	const QJsonValue v = valueAtPath(root, path);
+
 	if (v.isUndefined() || v.isNull()) {
 		qCDebug(logConfigManager) << "Config: key missing or null for" << path
 		                          << "- using default:" << defaultVal;
@@ -117,31 +145,35 @@ bool getBool(const QJsonObject& root, const QString& path, bool defaultVal = fal
 
 QByteArray findConfig() {
 	if (qEnvironmentVariableIsSet("QTENGINE_CONFIG")) {
-		const QByteArray path = qgetenv("QTENGINE_CONFIG");
-		const QFileInfo fileInfo = QFileInfo(path);
+		const QByteArray env = qgetenv("QTENGINE_CONFIG");
+		const QString path = QString::fromUtf8(env);
+		const QFileInfo fileInfo(path);
 
-		if (fileInfo.exists()) return path;
+		if (fileInfo.exists()) return env;
 	}
 
 	if (qEnvironmentVariableIsSet("XDG_CONFIG_HOME")) {
-		const QByteArray fullPath = qgetenv("XDG_CONFIG_HOME").append("/qtengine/config.json");
-		const QFileInfo fileInfo = QFileInfo(fullPath);
+		const QByteArray env = qgetenv("XDG_CONFIG_HOME");
+		const QString dir = QString::fromUtf8(env);
+		const QString fullPath = QDir(dir).filePath("qtengine/config.json");
+		const QFileInfo fileInfo(fullPath);
 
-		if (fileInfo.exists()) return fullPath;
+		if (fileInfo.exists()) return fullPath.toUtf8();
 	}
 
 	if (qEnvironmentVariableIsSet("XDG_CONFIG_DIRS")) {
+		const QByteArray env = qgetenv("XDG_CONFIG_DIRS");
 		const QList<QByteArray> paths = qgetenv("XDG_CONFIG_DIRS").split(':');
 
-		for (QByteArray path: paths) {
-			const QByteArray fullPath = path.append("/qtengine/config.json");
-			const QFileInfo fileInfo = QFileInfo(fullPath);
+		for (const QByteArray& p: paths) {
+			const QString fullPath = QDir(p).filePath("qtengine/config.json");
+			const QFileInfo fileInfo(fullPath);
 
-			if (fileInfo.exists()) return fullPath;
+			if (fileInfo.exists()) return fullPath.toUtf8();
 		}
 	}
 
-	return nullptr;
+	return QByteArray();
 }
 } // namespace
 
@@ -171,7 +203,7 @@ void ConfigManager::init() {
 
 	const QJsonObject root = doc.object();
 
-	this->colorScheme = getString(root, "theme.colorScheme", QString());
+	this->colorScheme = getPath(root, "theme.colorScheme", QString());
 	this->iconTheme = getString(root, "theme.iconTheme", QString());
 	this->style = getString(root, "theme.style", QString());
 
