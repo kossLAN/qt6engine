@@ -71,7 +71,7 @@ programs.qtengine = {
 First you'll need the following Qt6 dependencies
 
 ```
-qtbase kconfig kcolorscheme kiconthemes
+extra-cmake-modules qtbase kconfig kcolorscheme kiconthemes
 ```
 
 If you want Qt5 support you'll also need 
