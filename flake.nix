@@ -14,7 +14,7 @@
   in {
     nixosModules.default = import ./nix/module.nix inputs;
 
-    hjemModules.defaule = import ./nix/hjem.nix inputs;
+    hjemModules.default = import ./nix/hjem.nix inputs;
 
     packages = forEachSystem (system: pkgs: {
       default = pkgs.callPackage ./nix/default.nix {};
