@@ -24,7 +24,9 @@
 QSet<Style::CStyleInstance*> Style::styleInstances;
 
 QPalette Style::loadColorScheme(const QString& filePath) {
-	return KColorScheme::createApplicationPalette(KSharedConfig::openConfig(filePath));
+	auto config = KSharedConfig::openConfig(filePath);
+	config->reparseConfiguration();
+	return KColorScheme::createApplicationPalette(config);
 }
 
 void Style::registerStyleInstance(Style::CStyleInstance* instance) {

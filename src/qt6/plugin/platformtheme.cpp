@@ -258,5 +258,6 @@ bool PlatformTheme::eventFilter(QObject* obj, QEvent* e) {
 
 void PlatformTheme::onConfigChanged() {
 	configManager().reload();
+	ConfigWatcher::instance().setupFileWatching();
 	this->applySettings();
 }

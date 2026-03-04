@@ -2,7 +2,7 @@
 
 #include <QDBusConnection>
 #include <QDBusServiceWatcher>
-#include <QDateTime>
+#include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QLoggingCategory>
 #include <QObject>
@@ -22,6 +22,8 @@ public:
 
 	Q_DISABLE_COPY_MOVE(ConfigWatcher)
 
+	void setupFileWatching();
+
 signals:
 	Q_SCRIPTABLE void configChanged();
 
@@ -29,7 +31,6 @@ private slots:
 	void onFileChanged(const QString& path);
 	void onRemoteConfigChanged();
 	void onServiceUnregistered(const QString& service);
-	void pollForChanges();
 
 private:
 	explicit ConfigWatcher(QObject* parent = nullptr);
@@ -40,7 +41,5 @@ private:
 	QFileSystemWatcher* mFileWatcher = nullptr;
 	QDBusServiceWatcher* mServiceWatcher = nullptr;
 	QTimer* mDebounceTimer = nullptr;
-	QTimer* mPollTimer = nullptr;
-	QDateTime mLastModified;
 	QString mConfigPath;
 };

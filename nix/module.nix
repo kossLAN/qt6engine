@@ -16,13 +16,15 @@ in {
     qt.enable = true;
 
     environment = {
-      etc."xdg/qtengine/config.json".source = configFormat.generate "qtengine-config.json" cfg.config;
-
       variables.QT_QPA_PLATFORMTHEME = "qtengine";
 
       systemPackages = [
         inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.default
       ];
+
+      etc."xdg/qtengine/config.json".source =
+        mkIf (cfg.config != {})
+        (configFormat.generate "qtengine-config.json" cfg.config);
     };
   };
 }

@@ -1,8 +1,18 @@
 #include "configwatcher.hpp"
 
-#include <QDBusConnection>
-#include <QDBusConnectionInterface>
-#include <QFileInfo>
+#include <qdbusconnection.h>
+#include <qdbusservicewatcher.h>
+#include <qfileinfo.h>
+#include <qfilesystemwatcher.h>
+#include <qlogging.h>
+#include <qloggingcategory.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qstring.h>
+#include <qtenvironmentvariables.h>
+#include <qtimer.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 
 #include "config/configmanager.hpp"
 
@@ -21,31 +31,29 @@ ConfigWatcher::ConfigWatcher(QObject* parent)
     : QObject(parent)
     , mConfigPath(configManager().configPath) {
 
-	if (mConfigPath.isEmpty()) {
+	if (this->mConfigPath.isEmpty()) {
 		qCWarning(logConfigWatcher) << "No config file path available, config watching disabled";
 		return;
 	}
 
-	mLastModified = QFileInfo(mConfigPath).lastModified();
+	this->mDebounceTimer = new QTimer(this);
+	this->mDebounceTimer->setSingleShot(true);
+	this->mDebounceTimer->setInterval(250);
 
-	mDebounceTimer = new QTimer(this);
-	mDebounceTimer->setSingleShot(true);
-	mDebounceTimer->setInterval(250);
-
-	connect(mDebounceTimer, &QTimer::timeout, this, [this]() {
-		mLastModified = QFileInfo(mConfigPath).lastModified();
+	connect(this->mDebounceTimer, &QTimer::timeout, this, [this]() {
 		qCInfo(logConfigWatcher) << "Config file changed, notifying listeners";
-		emit configChanged();
+		emit this->configChanged();
 	});
 
 	auto bus = QDBusConnection::sessionBus();
 
 	if (!bus.isConnected()) {
-		qCWarning(logConfigWatcher) << "D-Bus session bus unavailable, config watching disabled";
+		qCInfo(logConfigWatcher) << "D-Bus session bus not connected, using local file watching only";
+		this->setupFileWatching();
 		return;
 	}
 
-	mServiceWatcher = new QDBusServiceWatcher(
+	this->mServiceWatcher = new QDBusServiceWatcher(
 	    SERVICE_NAME,
 	    bus,
 	    QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration,
@@ -53,17 +61,17 @@ ConfigWatcher::ConfigWatcher(QObject* parent)
 	);
 
 	connect(
-	    mServiceWatcher,
+	    this->mServiceWatcher,
 	    &QDBusServiceWatcher::serviceUnregistered,
 	    this,
 	    &ConfigWatcher::onServiceUnregistered
 	);
 
-	tryRegister();
+	this->tryRegister();
 }
 
 ConfigWatcher::~ConfigWatcher() {
-	if (mIsRegistered) {
+	if (this->mIsRegistered) {
 		auto bus = QDBusConnection::sessionBus();
 
 		if (bus.isConnected()) {
@@ -77,42 +85,52 @@ void ConfigWatcher::tryRegister() {
 	auto bus = QDBusConnection::sessionBus();
 
 	if (!bus.registerService(SERVICE_NAME)) {
-		connectToRemote();
+		this->connectToRemote();
 		return;
 	}
 
-	mIsRegistered = true;
+	this->mIsRegistered = true;
 	bus.registerObject(OBJECT_PATH, this, QDBusConnection::ExportScriptableSignals);
 
-	mFileWatcher = new QFileSystemWatcher(this);
+	this->setupFileWatching();
 
-	bool fileAdded = mFileWatcher->addPath(mConfigPath);
-	qCInfo(logConfigWatcher) << "Watching config file:" << mConfigPath << "(inotify:" << fileAdded
-	                         << ")";
+	qCInfo(logConfigWatcher) << "Registered config watcher on D-Bus";
+}
 
-	// Watch the parent directory to handle editors that delete+recreate files
-	const QFileInfo fi(mConfigPath);
-	if (fi.absolutePath() != mConfigPath) {
-		mFileWatcher->addPath(fi.absolutePath());
+void ConfigWatcher::setupFileWatching() {
+	delete this->mFileWatcher;
+	this->mFileWatcher = new QFileSystemWatcher(this);
+
+	const bool fileAdded = this->mFileWatcher->addPath(this->mConfigPath);
+	qCInfo(logConfigWatcher) << "Watching config file:" << this->mConfigPath
+	                         << "(inotify:" << fileAdded << ")";
+
+	const QFileInfo fi(this->mConfigPath);
+	if (fi.absolutePath() != this->mConfigPath) {
+		this->mFileWatcher->addPath(fi.absolutePath());
 	}
 
-	connect(mFileWatcher, &QFileSystemWatcher::fileChanged, this, &ConfigWatcher::onFileChanged);
-	connect(mFileWatcher, &QFileSystemWatcher::directoryChanged, this, [this](const QString&) {
-		if (QFileInfo::exists(mConfigPath)) {
-			if (!mFileWatcher->files().contains(mConfigPath)) {
-				mFileWatcher->addPath(mConfigPath);
+	connect(
+	    this->mFileWatcher,
+	    &QFileSystemWatcher::fileChanged,
+	    this,
+	    &ConfigWatcher::onFileChanged
+	);
+
+	connect(this->mFileWatcher, &QFileSystemWatcher::directoryChanged, this, [this](const QString&) {
+		if (QFileInfo::exists(this->mConfigPath)) {
+			if (!this->mFileWatcher->files().contains(this->mConfigPath)) {
+				this->mFileWatcher->addPath(this->mConfigPath);
 			}
-			mDebounceTimer->start();
+			this->mDebounceTimer->start();
 		}
 	});
 
-	// Polling fallback — catches changes that inotify misses (NFS, FUSE, symlinks, etc.)
-	mPollTimer = new QTimer(this);
-	mPollTimer->setInterval(2000);
-	connect(mPollTimer, &QTimer::timeout, this, &ConfigWatcher::pollForChanges);
-	mPollTimer->start();
-
-	qCInfo(logConfigWatcher) << "Registered config watcher on D-Bus";
+	const auto& cfg = configManager();
+	if (!cfg.colorScheme.isEmpty() && QFileInfo::exists(cfg.colorScheme)) {
+		this->mFileWatcher->addPath(cfg.colorScheme);
+		qCInfo(logConfigWatcher) << "Watching color scheme file:" << cfg.colorScheme;
+	}
 }
 
 void ConfigWatcher::connectToRemote() {
@@ -132,38 +150,20 @@ void ConfigWatcher::connectToRemote() {
 
 void ConfigWatcher::onFileChanged(const QString& path) {
 	QTimer::singleShot(100, this, [this, path]() {
-		if (QFileInfo::exists(path) && !mFileWatcher->files().contains(path)) {
-			mFileWatcher->addPath(path);
+		if (QFileInfo::exists(path) && !this->mFileWatcher->files().contains(path)) {
+			this->mFileWatcher->addPath(path);
 		}
 	});
 
-	mDebounceTimer->start();
+	this->mDebounceTimer->start();
 }
 
-void ConfigWatcher::onRemoteConfigChanged() { emit configChanged(); }
-
-void ConfigWatcher::pollForChanges() {
-	const QFileInfo fi(mConfigPath);
-	if (!fi.exists()) return;
-
-	const QDateTime currentMtime = fi.lastModified();
-	if (currentMtime != mLastModified) {
-		mLastModified = currentMtime;
-
-		// Re-add to file watcher in case it was lost
-		if (!mFileWatcher->files().contains(mConfigPath)) {
-			mFileWatcher->addPath(mConfigPath);
-		}
-
-		qCInfo(logConfigWatcher) << "Poll detected config change";
-		mDebounceTimer->start();
-	}
-}
+void ConfigWatcher::onRemoteConfigChanged() { emit this->configChanged(); }
 
 void ConfigWatcher::onServiceUnregistered(const QString& service) {
 	Q_UNUSED(service)
 
-	if (!mIsRegistered) {
+	if (!this->mIsRegistered) {
 		qCInfo(logConfigWatcher) << "Config watcher instance unregistered, attempting to take over";
 
 		auto bus = QDBusConnection::sessionBus();
@@ -176,6 +176,6 @@ void ConfigWatcher::onServiceUnregistered(const QString& service) {
 		    SLOT(onRemoteConfigChanged())
 		);
 
-		tryRegister();
+		this->tryRegister();
 	}
 }

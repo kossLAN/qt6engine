@@ -12,12 +12,15 @@ in {
   options.programs.qtengine = import ./options.nix {inherit lib configFormat;};
 
   config = mkIf cfg.enable {
+    # Does HJEM not have a way to set this home profile???
+    environment.sessionVariables.QT_QPA_PLATFORMTHEME = "qtengine";
+
     packages = [
       inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
 
-    environment.sessionVariables.QT_QPA_PLATFORMTHEME = "qtengine";
-
-    xdg.config.files."qtengine/config.json".source = configFormat.generate "qtengine-config.json" cfg.config;
+    xdg.config.files."qtengine/config.json".source =
+      mkIf (cfg.config != {})
+      (configFormat.generate "qtengine-config.json" cfg.config);
   };
 }
