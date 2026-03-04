@@ -1,14 +1,13 @@
 #pragma once
 
-#include <QDebug>
-#include <QFile>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonParseError>
-#include <QJsonValue>
-#include <QLoggingCategory>
-#include <QString>
+#include <qdebug.h>
+#include <qfile.h>
+#include <qjsonarray.h>
+#include <qjsondocument.h>
+#include <qjsonobject.h>
+#include <qjsonvalue.h>
+#include <qloggingcategory.h>
+#include <qstring.h>
 
 Q_DECLARE_LOGGING_CATEGORY(logConfigManager);
 

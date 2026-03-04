@@ -1,15 +1,13 @@
 #include "proxystyle.hpp"
 
-#include <QLoggingCategory>
-#include <QProxyStyle>
-#include <QSettings>
-#include <QString>
-#include <QStyleFactory>
-#include <QStyleHintReturn>
-#include <QStyleOption>
-#include <QWidget>
 #include <qlogging.h>
+#include <qloggingcategory.h>
 #include <qnamespace.h>
+#include <qproxystyle.h>
+#include <qstring.h>
+#include <qstylefactory.h>
+#include <qstyleoption.h>
+#include <qwidget.h>
 
 #include "common.hpp"
 #include "config/configmanager.hpp"

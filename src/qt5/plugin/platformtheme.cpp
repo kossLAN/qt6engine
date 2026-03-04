@@ -105,7 +105,6 @@ PlatformTheme::PlatformTheme()
 
 	QCoreApplication::instance()->installEventFilter(this);
 
-	// Deferred — ConfigWatcher needs timers and D-Bus, which require the event loop
 	QMetaObject::invokeMethod(
 	    this,
 	    [this]() {
@@ -210,6 +209,8 @@ void PlatformTheme::applySettings() {
 	}
 
 	if (this->mUpdate) {
+		if (!qobject_cast<QApplication*>(QCoreApplication::instance())) return;
+
 		QWindowSystemInterface::handleThemeChange(nullptr);
 		QApplication::setFont(this->mFont);
 

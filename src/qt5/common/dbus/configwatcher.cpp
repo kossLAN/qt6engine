@@ -46,8 +46,7 @@ ConfigWatcher::ConfigWatcher(QObject* parent)
 	auto bus = QDBusConnection::sessionBus();
 
 	if (!bus.isConnected()) {
-		qCInfo(logConfigWatcher) << "D-Bus session bus not connected, using local file watching only";
-		this->setupFileWatching();
+		qCInfo(logConfigWatcher) << "D-Bus session bus not connected, skipping file watching";
 		return;
 	}
 
@@ -96,6 +95,11 @@ void ConfigWatcher::tryRegister() {
 }
 
 void ConfigWatcher::setupFileWatching() {
+	if (this->mConfigPath.isEmpty()) {
+		qCWarning(logConfigWatcher) << "No config file path available, skipping file watch setup";
+		return;
+	}
+
 	delete this->mFileWatcher;
 	this->mFileWatcher = new QFileSystemWatcher(this);
 
@@ -119,6 +123,7 @@ void ConfigWatcher::setupFileWatching() {
 			if (!this->mFileWatcher->files().contains(this->mConfigPath)) {
 				this->mFileWatcher->addPath(this->mConfigPath);
 			}
+
 			this->mDebounceTimer->start();
 		}
 	});
