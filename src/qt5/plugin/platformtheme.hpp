@@ -44,6 +44,7 @@ protected:
 
 private slots:
 	void applySettings();
+	void onConfigChanged();
 
 private:
 	static QStringList iconPaths();

@@ -1,6 +1,7 @@
 set(QTENGINE_COMMON_SOURCES
   common.cpp
   config/configmanager.cpp
+  dbus/configwatcher.cpp
 )
 
 add_library(${QTENGINE_NAME}_common SHARED ${QTENGINE_COMMON_SOURCES})
@@ -11,7 +12,7 @@ target_include_directories(${QTENGINE_NAME}_common
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_link_libraries(${QTENGINE_NAME}_common PUBLIC ${QT_NAMESPACE}::Core)
+target_link_libraries(${QTENGINE_NAME}_common PUBLIC ${QT_NAMESPACE}::Core ${QT_NAMESPACE}::DBus)
 
 if (QT_MAJOR EQUAL 5) 
     target_link_libraries(${QTENGINE_NAME}_common PRIVATE 

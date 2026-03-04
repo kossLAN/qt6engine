@@ -11,8 +11,8 @@
 #include <qlogging.h>
 #include <qnamespace.h>
 
-#include "../common/common.hpp"
-#include "../common/config/configmanager.hpp"
+#include "common.hpp"
+#include "config/configmanager.hpp"
 
 Q_LOGGING_CATEGORY(logStyle, "qtengine.style", QtWarningMsg);
 

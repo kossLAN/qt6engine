@@ -15,6 +15,9 @@ Q_DECLARE_LOGGING_CATEGORY(logConfigManager);
 class ConfigManager {
 public:
 	void init();
+	void reload();
+
+	QString configPath;
 
 	QString colorScheme;
 	QString iconTheme;
@@ -32,6 +35,9 @@ public:
 	bool singleClickActivate = true;
 	bool menusHaveIcons = true;
 	bool shortcutsForContextMenus = true;
+
+private:
+	void loadFromPath(const QString& path);
 };
 
-const ConfigManager& configManager();
+ConfigManager& configManager();

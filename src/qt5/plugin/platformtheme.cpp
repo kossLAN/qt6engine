@@ -74,8 +74,9 @@
 #include <private/qgenericunixthemes_p.h>
 #endif
 
-#include "../common/common.hpp"
-#include "../common/config/configmanager.hpp"
+#include "common.hpp"
+#include "config/configmanager.hpp"
+#include "dbus/configwatcher.hpp"
 #include "platformtheme.hpp"
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
@@ -108,6 +109,16 @@ PlatformTheme::PlatformTheme()
 	}
 
 	QCoreApplication::instance()->installEventFilter(this);
+
+	// Deferred — ConfigWatcher needs timers and D-Bus, which require the event loop
+	QMetaObject::invokeMethod(
+	    this,
+	    [this]() {
+		    auto& watcher = ConfigWatcher::instance();
+		    connect(&watcher, &ConfigWatcher::configChanged, this, &PlatformTheme::onConfigChanged);
+	    },
+	    Qt::QueuedConnection
+	);
 }
 
 bool PlatformTheme::usePlatformNativeDialog(DialogType type) const {
@@ -204,16 +215,9 @@ void PlatformTheme::applySettings() {
 	}
 
 	if (this->mUpdate) {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-		QWindowSystemInterface::handleThemeChange();
-#else
 		QWindowSystemInterface::handleThemeChange(nullptr);
-#endif
+		QApplication::setFont(this->mFont);
 
-		QCoreApplication::postEvent(qGuiApp, new QEvent(QEvent::ApplicationFontChange));
-	}
-
-	if (this->mUpdate) {
 		for (QWidget* w: QApplication::allWidgets())
 			QCoreApplication::postEvent(w, new QEvent(QEvent::ThemeChange));
 	}
@@ -250,4 +254,9 @@ bool PlatformTheme::eventFilter(QObject* obj, QEvent* e) {
 		this->applySettings();
 
 	return this->QObject::eventFilter(obj, e);
+}
+
+void PlatformTheme::onConfigChanged() {
+	configManager().reload();
+	this->applySettings();
 }
