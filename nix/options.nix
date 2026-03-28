@@ -1,9 +1,17 @@
 {
   lib,
   configFormat,
-}: let
+}:
+let
   inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) oneOf path str int bool submodule;
+  inherit (lib.types)
+    oneOf
+    path
+    str
+    int
+    bool
+    submodule
+    ;
 
   mkFontOption = mkOption {
     type = submodule (_: {
@@ -27,11 +35,12 @@
       };
     });
   };
-in {
+in
+{
   enable = mkEnableOption "Enable qt6engine.";
 
   config = mkOption {
-    default = {};
+    default = { };
     description = ''
       Config options for qt6engine, see README for more information.
     '';
@@ -46,7 +55,10 @@ in {
 
             options = {
               colorScheme = mkOption {
-                type = oneOf [path str];
+                type = oneOf [
+                  path
+                  str
+                ];
                 default = "";
                 description = ''
                   A path to a compatible KDE color scheme file.
@@ -80,17 +92,13 @@ in {
                 '';
               };
 
-              fontFixed =
-                mkFontOption
-                // {
-                  description = "Config for fixed/monospace fonts.";
-                };
+              fontFixed = mkFontOption // {
+                description = "Config for fixed/monospace fonts.";
+              };
 
-              font =
-                mkFontOption
-                // {
-                  description = "Config for regular fonts.";
-                };
+              font = mkFontOption // {
+                description = "Config for regular fonts.";
+              };
             };
           });
         };

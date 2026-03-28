@@ -210,6 +210,8 @@ void PlatformTheme::applySettings() {
 	if (this->mUpdate) {
 		if (!qobject_cast<QApplication*>(QCoreApplication::instance())) return;
 
+		QIcon::setThemeName(cfg.iconTheme);
+		KIconLoader::global()->reconfigure(qApp->applicationName());
 		QWindowSystemInterface::handleThemeChange();
 		QApplication::setFont(this->mFont);
 

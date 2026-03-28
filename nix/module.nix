@@ -1,16 +1,19 @@
-inputs: {
+inputs:
+{
   self,
   lib,
   config,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (lib.modules) mkIf;
 
-  configFormat = pkgs.formats.json {};
+  configFormat = pkgs.formats.json { };
   cfg = config.programs.qtengine;
-in {
-  options.programs.qtengine = import ./options.nix {inherit lib configFormat;};
+in
+{
+  options.programs.qtengine = import ./options.nix { inherit lib configFormat; };
 
   config = mkIf cfg.enable {
     qt.enable = true;
@@ -23,9 +26,9 @@ in {
         inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.default.qt5
       ];
 
-      etc."xdg/qtengine/config.json".source =
-        mkIf (cfg.config != {})
-        (configFormat.generate "qtengine-config.json" cfg.config);
+      etc."xdg/qtengine/config.json".source = mkIf (cfg.config != { }) (
+        configFormat.generate "qtengine-config.json" cfg.config
+      );
     };
   };
 }
